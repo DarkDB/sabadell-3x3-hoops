@@ -1,9 +1,26 @@
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, X, LogIn, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
+import { User as SupabaseUser } from "@supabase/supabase-js";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -50,6 +67,25 @@ const Navbar = () => {
             >
               Inscríbete
             </Button>
+            {user ? (
+              <Button
+                onClick={() => navigate("/admin")}
+                variant="outline"
+                className="ml-2 border-border"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
+            ) : (
+              <Button
+                onClick={() => navigate("/auth")}
+                variant="outline"
+                className="ml-2 border-border"
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Ingresar
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -73,13 +109,32 @@ const Navbar = () => {
                 {item.label}
               </button>
             ))}
-            <div className="px-4 pt-4">
+            <div className="px-4 pt-4 space-y-2">
               <Button
                 onClick={() => scrollToSection("registration")}
                 className="w-full bg-gradient-primary hover:shadow-glow transition-all duration-300"
               >
                 Inscríbete
               </Button>
+              {user ? (
+                <Button
+                  onClick={() => navigate("/admin")}
+                  variant="outline"
+                  className="w-full border-border"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Admin
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => navigate("/auth")}
+                  variant="outline"
+                  className="w-full border-border"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Ingresar
+                </Button>
+              )}
             </div>
           </div>
         )}
