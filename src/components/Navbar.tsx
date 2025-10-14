@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Menu, X, LogIn, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
 
