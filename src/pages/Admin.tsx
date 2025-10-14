@@ -47,21 +47,20 @@ const Admin = () => {
         .select("role")
         .eq("user_id", userId)
         .eq("role", "admin")
-        .single();
-
-      if (error) throw error;
+        .maybeSingle();
 
       setIsAdmin(!!data);
       setLoading(false);
 
       if (!data) {
         toast.error("No tienes permisos de administrador");
-        navigate("/");
+        setTimeout(() => navigate("/"), 1500);
       }
     } catch (error) {
+      console.error("Error checking admin role:", error);
       setLoading(false);
       toast.error("Error verificando permisos");
-      navigate("/");
+      setTimeout(() => navigate("/"), 1500);
     }
   };
 
