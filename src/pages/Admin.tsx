@@ -15,6 +15,7 @@ const Admin = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,19 +27,21 @@ const Admin = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setAuthChecked(true);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
+    if (!authChecked) return;
     if (user) {
       checkAdminRole(user.id);
-    } else if (loading) {
+    } else {
       setLoading(false);
       navigate("/auth");
     }
-  }, [user, navigate]);
+  }, [user, authChecked, navigate]);
 
   const checkAdminRole = async (userId: string) => {
     try {
