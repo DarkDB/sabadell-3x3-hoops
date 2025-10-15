@@ -1,27 +1,61 @@
+import { useState, useEffect } from "react";
 import { Trophy, Users, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+
+interface League {
+  id: string;
+  name: string;
+  description: string | null;
+  season: string | null;
+  start_date: string | null;
+  end_date: string | null;
+}
 
 const Leagues = () => {
-  const leagues = [
-    {
-      title: "Liga Principal",
-      description: "Competición de alto nivel para equipos experimentados",
-      icon: Trophy,
-      details: ["8 equipos", "Formato round-robin", "Playoffs finales"],
-    },
-    {
-      title: "Liga Amateur",
-      description: "Perfecta para equipos que empiezan en el 3x3",
-      icon: Users,
-      details: ["10 equipos", "Dos divisiones", "Ascenso disponible"],
-    },
-    {
-      title: "Liga de Verano",
-      description: "Torneo especial durante los meses de verano",
-      icon: Calendar,
-      details: ["Formato abierto", "Partidos semanales", "Ambiente festivo"],
-    },
-  ];
+  const [leagues, setLeagues] = useState<League[]>([]);
+  const [teamCounts, setTeamCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    fetchLeagues();
+  }, []);
+
+  const fetchLeagues = async () => {
+    const { data: leaguesData } = await supabase
+      .from("leagues")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (leaguesData) {
+      setLeagues(leaguesData);
+      
+      // Fetch team counts for each league
+      const counts: Record<string, number> = {};
+      for (const league of leaguesData) {
+        const { count } = await supabase
+          .from("teams")
+          .select("*", { count: "exact", head: true })
+          .eq("league_id", league.id);
+        counts[league.id] = count || 0;
+      }
+      setTeamCounts(counts);
+    }
+  };
+
+  const getIcon = (index: number) => {
+    const icons = [Trophy, Users, Calendar];
+    return icons[index % icons.length];
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString("es-ES", { 
+      day: "numeric", 
+      month: "short", 
+      year: "numeric" 
+    });
+  };
 
   return (
     <section id="leagues" className="py-20 bg-secondary">
@@ -36,35 +70,59 @@ const Leagues = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {leagues.map((league, index) => {
-            const Icon = league.icon;
-            return (
-              <Card
-                key={index}
-                className="bg-background border-border hover:border-primary transition-all duration-300 hover:shadow-glow hover:-translate-y-2 group"
-              >
-                <CardHeader>
-                  <div className="w-16 h-16 bg-gradient-primary rounded-lg flex items-center justify-center mb-4 group-hover:shadow-glow transition-all duration-300">
-                    <Icon className="w-8 h-8 text-primary-foreground" />
-                  </div>
-                  <CardTitle className="text-2xl font-bold text-foreground">
-                    {league.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-6">{league.description}</p>
-                  <ul className="space-y-2">
-                    {league.details.map((detail, idx) => (
-                      <li key={idx} className="flex items-center text-sm text-foreground">
-                        <div className="w-1.5 h-1.5 bg-primary rounded-full mr-3"></div>
-                        {detail}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {leagues.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <p className="text-muted-foreground">No hay ligas disponibles</p>
+            </div>
+          ) : (
+            leagues.map((league, index) => {
+              const Icon = getIcon(index);
+              const details = [];
+              
+              if (teamCounts[league.id]) {
+                details.push(`${teamCounts[league.id]} equipos`);
+              }
+              
+              if (league.season) {
+                details.push(`Temporada ${league.season}`);
+              }
+              
+              if (league.start_date && league.end_date) {
+                details.push(`${formatDate(league.start_date)} - ${formatDate(league.end_date)}`);
+              }
+              
+              return (
+                <Card
+                  key={league.id}
+                  className="bg-background border-border hover:border-primary transition-all duration-300 hover:shadow-glow hover:-translate-y-2 group"
+                >
+                  <CardHeader>
+                    <div className="w-16 h-16 bg-gradient-primary rounded-lg flex items-center justify-center mb-4 group-hover:shadow-glow transition-all duration-300">
+                      <Icon className="w-8 h-8 text-primary-foreground" />
+                    </div>
+                    <CardTitle className="text-2xl font-bold text-foreground">
+                      {league.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-6">
+                      {league.description || "Liga competitiva de baloncesto 3x3"}
+                    </p>
+                    {details.length > 0 && (
+                      <ul className="space-y-2">
+                        {details.map((detail, idx) => (
+                          <li key={idx} className="flex items-center text-sm text-foreground">
+                            <div className="w-1.5 h-1.5 bg-primary rounded-full mr-3"></div>
+                            {detail}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
         </div>
       </div>
     </section>
