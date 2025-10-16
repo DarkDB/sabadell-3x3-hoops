@@ -3,8 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Edit, Trash2 } from "lucide-react";
 
@@ -180,6 +189,28 @@ const AdminMatches = () => {
     return team?.name || "Equipo desconocido";
   };
 
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, "default" | "secondary" | "destructive"> = {
+      scheduled: "secondary",
+      in_progress: "default",
+      completed: "default",
+      cancelled: "destructive",
+    };
+
+    const labels: Record<string, string> = {
+      scheduled: "Programado",
+      in_progress: "En progreso",
+      completed: "Completado",
+      cancelled: "Cancelado",
+    };
+
+    return (
+      <Badge variant={variants[status] || "default"}>
+        {labels[status] || status}
+      </Badge>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <Card className="p-6 bg-card border-border">
@@ -333,50 +364,79 @@ const AdminMatches = () => {
         </form>
       </Card>
 
-      <div className="space-y-4">
-        {matches.map((match) => (
-          <Card key={match.id} className="p-4 bg-card border-border">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-4">
-                  <h3 className="font-bold text-card-foreground">
-                    {getTeamName(match.home_team_id)} vs {getTeamName(match.away_team_id)}
-                  </h3>
-                  <span className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground">
-                    {match.status}
-                  </span>
-                </div>
-                {match.status === "completed" && match.home_score !== null && (
-                  <p className="text-lg font-bold text-primary mt-2">
-                    {match.home_score} - {match.away_score}
-                  </p>
-                )}
-                <p className="text-sm text-muted-foreground mt-1">
-                  {new Date(match.match_date).toLocaleString("es-ES")} - {match.location}
-                </p>
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(match)}
-                  className="border-border"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDelete(match.id)}
-                  className="border-border text-destructive"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Partidos Registrados</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {matches.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              No hay partidos registrados aún
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Partido</TableHead>
+                    <TableHead>Liga</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Ubicación</TableHead>
+                    <TableHead>Resultado</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {matches.map((match) => (
+                    <TableRow key={match.id}>
+                      <TableCell className="font-medium">
+                        {getTeamName(match.home_team_id)} vs {getTeamName(match.away_team_id)}
+                      </TableCell>
+                      <TableCell>
+                        {leagues.find((l) => l.id === match.league_id)?.name || "Sin liga"}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(match.match_date).toLocaleString("es-ES")}
+                      </TableCell>
+                      <TableCell>{match.location}</TableCell>
+                      <TableCell>
+                        {match.status === "completed" && match.home_score !== null ? (
+                          <span className="font-bold text-primary">
+                            {match.home_score} - {match.away_score}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(match.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(match)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(match.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          </Card>
-        ))}
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

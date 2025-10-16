@@ -3,7 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 import { Plus, Edit, Trash2 } from "lucide-react";
 
@@ -188,40 +196,63 @@ const AdminLeagues = () => {
         </form>
       </Card>
 
-      <div className="space-y-4">
-        {leagues.map((league) => (
-          <Card key={league.id} className="p-4 bg-card border-border">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h3 className="font-bold text-lg text-card-foreground">{league.name}</h3>
-                <p className="text-muted-foreground text-sm">{league.description}</p>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  <span className="font-medium">Temporada:</span> {league.season} | 
-                  <span className="font-medium ml-2">Fechas:</span> {league.start_date} - {league.end_date}
-                </div>
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(league)}
-                  className="border-border"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDelete(league.id)}
-                  className="border-border text-destructive"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Ligas Registradas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {leagues.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              No hay ligas registradas aún
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nombre</TableHead>
+                    <TableHead>Descripción</TableHead>
+                    <TableHead>Temporada</TableHead>
+                    <TableHead>Fecha Inicio</TableHead>
+                    <TableHead>Fecha Fin</TableHead>
+                    <TableHead>Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {leagues.map((league) => (
+                    <TableRow key={league.id}>
+                      <TableCell className="font-medium">{league.name}</TableCell>
+                      <TableCell>{league.description}</TableCell>
+                      <TableCell>{league.season}</TableCell>
+                      <TableCell>{new Date(league.start_date).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(league.end_date).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(league)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(league.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          </Card>
-        ))}
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

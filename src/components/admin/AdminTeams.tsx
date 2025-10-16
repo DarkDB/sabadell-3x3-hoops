@@ -3,8 +3,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 import { Plus, Edit, Trash2 } from "lucide-react";
 
@@ -217,41 +225,73 @@ const AdminTeams = () => {
         </form>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {teams.map((team) => (
-          <Card key={team.id} className="p-4 bg-card border-border">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h3 className="font-bold text-lg text-card-foreground">{team.name}</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Record: {team.wins}V - {team.losses}D
-                </p>
-                {team.logo_url && (
-                  <img src={team.logo_url} alt={team.name} className="w-16 h-16 object-contain mt-2" />
-                )}
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(team)}
-                  className="border-border"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDelete(team.id)}
-                  className="border-border text-destructive"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Equipos Registrados</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {teams.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              No hay equipos registrados aún
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Logo</TableHead>
+                    <TableHead>Nombre</TableHead>
+                    <TableHead>Liga</TableHead>
+                    <TableHead>Victorias</TableHead>
+                    <TableHead>Derrotas</TableHead>
+                    <TableHead>Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {teams.map((team) => (
+                    <TableRow key={team.id}>
+                      <TableCell>
+                        {team.logo_url ? (
+                          <img src={team.logo_url} alt={team.name} className="w-10 h-10 object-contain" />
+                        ) : (
+                          <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs">
+                            Sin logo
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">{team.name}</TableCell>
+                      <TableCell>
+                        {leagues.find((l) => l.id === team.league_id)?.name || "Sin liga"}
+                      </TableCell>
+                      <TableCell>{team.wins}</TableCell>
+                      <TableCell>{team.losses}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(team)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(team.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          </Card>
-        ))}
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
