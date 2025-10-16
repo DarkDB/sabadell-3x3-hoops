@@ -1,0 +1,209 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+
+interface Registration {
+  id: string;
+  team_name: string;
+  captain_name: string;
+  email: string;
+  phone: string;
+  number_of_players: number;
+  payment_status: string;
+  created_at: string;
+  leagues: {
+    name: string;
+    season: string | null;
+  };
+  players: { id: string }[];
+}
+
+const AdminRegistrations = () => {
+  const { toast } = useToast();
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRegistrations();
+  }, []);
+
+  const fetchRegistrations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("team_registrations")
+        .select(
+          `
+          *,
+          leagues (
+            name,
+            season
+          ),
+          players (
+            id
+          )
+        `
+        )
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      setRegistrations(data || []);
+    } catch (error: any) {
+      console.error("Error fetching registrations:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los registros",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePaymentStatus = async (id: string, status: string) => {
+    try {
+      const { error } = await supabase
+        .from("team_registrations")
+        .update({ payment_status: status })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Estado actualizado",
+        description: "El estado de pago ha sido actualizado",
+      });
+
+      fetchRegistrations();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, "default" | "secondary" | "destructive"> = {
+      pending: "secondary",
+      paid: "default",
+      rejected: "destructive",
+    };
+
+    const labels: Record<string, string> = {
+      pending: "Pendiente",
+      paid: "Pagado",
+      rejected: "Rechazado",
+    };
+
+    return (
+      <Badge variant={variants[status] || "default"}>
+        {labels[status] || status}
+      </Badge>
+    );
+  };
+
+  if (loading) {
+    return <div className="p-8 text-center">Cargando registros...</div>;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Registros de Equipos</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {registrations.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">
+            No hay registros aún
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Equipo</TableHead>
+                  <TableHead>Capitán</TableHead>
+                  <TableHead>Liga</TableHead>
+                  <TableHead>Contacto</TableHead>
+                  <TableHead>Jugadores</TableHead>
+                  <TableHead>Estado Pago</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {registrations.map((reg) => (
+                  <TableRow key={reg.id}>
+                    <TableCell className="font-medium">{reg.team_name}</TableCell>
+                    <TableCell>{reg.captain_name}</TableCell>
+                    <TableCell>
+                      {reg.leagues.name}
+                      {reg.leagues.season && (
+                        <span className="text-sm text-muted-foreground">
+                          {" "}
+                          - {reg.leagues.season}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div>{reg.email}</div>
+                        <div className="text-muted-foreground">{reg.phone}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {reg.players.length} / {reg.number_of_players}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(reg.payment_status)}</TableCell>
+                    <TableCell>
+                      {new Date(reg.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={reg.payment_status}
+                        onValueChange={(value) =>
+                          updatePaymentStatus(reg.id, value)
+                        }
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pendiente</SelectItem>
+                          <SelectItem value="paid">Pagado</SelectItem>
+                          <SelectItem value="rejected">Rechazado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default AdminRegistrations;

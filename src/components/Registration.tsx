@@ -1,32 +1,99 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Users, Mail, Phone, Trophy } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface League {
+  id: string;
+  name: string;
+  season: string | null;
+}
 
 const Registration = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [leagues, setLeagues] = useState<League[]>([]);
   const [formData, setFormData] = useState({
     teamName: "",
     captainName: "",
     email: "",
     phone: "",
     players: "",
+    leagueId: "",
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    checkAuth();
+    fetchLeagues();
+  }, []);
+
+  const checkAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setUser(user);
+      setFormData(prev => ({ ...prev, email: user.email || "" }));
+    }
+  };
+
+  const fetchLeagues = async () => {
+    const { data, error } = await supabase
+      .from("leagues")
+      .select("id, name, season")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching leagues:", error);
+      return;
+    }
+    setLeagues(data || []);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("¡Inscripción recibida! Nos pondremos en contacto pronto.");
-    setFormData({
-      teamName: "",
-      captainName: "",
-      email: "",
-      phone: "",
-      players: "",
-      message: "",
-    });
+    
+    if (!user) {
+      toast.error("Debes iniciar sesión para registrar un equipo");
+      navigate("/auth");
+      return;
+    }
+
+    if (!formData.leagueId) {
+      toast.error("Debes seleccionar una liga");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.from("team_registrations").insert({
+        user_id: user.id,
+        team_name: formData.teamName,
+        captain_name: formData.captainName,
+        email: formData.email,
+        phone: formData.phone,
+        league_id: formData.leagueId,
+        number_of_players: parseInt(formData.players),
+        message: formData.message,
+      });
+
+      if (error) throw error;
+
+      toast.success("¡Registro exitoso! Revisa tu dashboard para completar la información.");
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Error:", error);
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -108,6 +175,26 @@ const Registration = () => {
                 </div>
 
                 <div>
+                  <Label htmlFor="leagueId" className="text-foreground">Liga</Label>
+                  <Select
+                    value={formData.leagueId}
+                    onValueChange={(value) => setFormData({ ...formData, leagueId: value })}
+                    required
+                  >
+                    <SelectTrigger className="mt-2 bg-muted border-border text-foreground">
+                      <SelectValue placeholder="Selecciona una liga" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {leagues.map((league) => (
+                        <SelectItem key={league.id} value={league.id}>
+                          {league.name} {league.season ? `- ${league.season}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <Label htmlFor="players" className="text-foreground">Número de Jugadores</Label>
                   <Input
                     id="players"
@@ -139,8 +226,9 @@ const Registration = () => {
                 <Button
                   type="submit"
                   className="w-full bg-gradient-primary hover:shadow-glow transition-all duration-300 text-lg py-6"
+                  disabled={loading}
                 >
-                  Inscribir Equipo
+                  {loading ? "Registrando..." : "Inscribir Equipo"}
                 </Button>
               </form>
             </div>

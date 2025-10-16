@@ -9,6 +9,7 @@ import { LogOut } from "lucide-react";
 import AdminLeagues from "@/components/admin/AdminLeagues";
 import AdminTeams from "@/components/admin/AdminTeams";
 import AdminMatches from "@/components/admin/AdminMatches";
+import AdminRegistrations from "@/components/admin/AdminRegistrations";
 
 const Admin = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -120,10 +121,11 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="leagues" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="leagues">Ligas</TabsTrigger>
             <TabsTrigger value="teams">Equipos</TabsTrigger>
             <TabsTrigger value="matches">Partidos</TabsTrigger>
+            <TabsTrigger value="registrations">Inscripciones</TabsTrigger>
           </TabsList>
 
           <TabsContent value="leagues">
@@ -136,6 +138,10 @@ const Admin = () => {
 
           <TabsContent value="matches">
             <AdminMatches />
+          </TabsContent>
+
+          <TabsContent value="registrations">
+            <AdminRegistrations />
           </TabsContent>
         </Tabs>
       </div>

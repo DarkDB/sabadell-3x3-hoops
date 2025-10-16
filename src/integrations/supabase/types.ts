@@ -105,6 +105,41 @@ export type Database = {
           },
         ]
       }
+      players: {
+        Row: {
+          created_at: string
+          id: string
+          jersey_number: number | null
+          name: string
+          position: string | null
+          team_registration_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          jersey_number?: number | null
+          name: string
+          position?: string | null
+          team_registration_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          jersey_number?: number | null
+          name?: string
+          position?: string | null
+          team_registration_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_team_registration_id_fkey"
+            columns: ["team_registration_id"]
+            isOneToOne: false
+            referencedRelation: "team_registrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -128,6 +163,62 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      team_registrations: {
+        Row: {
+          captain_name: string
+          created_at: string
+          email: string
+          id: string
+          league_id: string
+          message: string | null
+          number_of_players: number
+          payment_proof_url: string | null
+          payment_status: string
+          phone: string
+          team_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          captain_name: string
+          created_at?: string
+          email: string
+          id?: string
+          league_id: string
+          message?: string | null
+          number_of_players: number
+          payment_proof_url?: string | null
+          payment_status?: string
+          phone: string
+          team_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          captain_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          league_id?: string
+          message?: string | null
+          number_of_players?: number
+          payment_proof_url?: string | null
+          payment_status?: string
+          phone?: string
+          team_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_registrations_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teams: {
         Row: {
