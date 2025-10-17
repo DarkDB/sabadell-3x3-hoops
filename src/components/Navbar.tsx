@@ -69,12 +69,12 @@ const Navbar = () => {
             </Button>
             {user ? (
               <Button
-                onClick={() => navigate("/admin")}
+                onClick={() => navigate("/dashboard")}
                 variant="outline"
                 className="ml-2 border-border"
               >
                 <User className="w-4 h-4 mr-2" />
-                Admin
+                Mi perfil
               </Button>
             ) : (
               <Button
@@ -118,12 +118,12 @@ const Navbar = () => {
               </Button>
               {user ? (
                 <Button
-                  onClick={() => navigate("/admin")}
+                  onClick={() => navigate("/dashboard")}
                   variant="outline"
                   className="w-full border-border"
                 >
                   <User className="w-4 h-4 mr-2" />
-                  Admin
+                  Mi perfil
                 </Button>
               ) : (
                 <Button
