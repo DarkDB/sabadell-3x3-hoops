@@ -91,8 +91,6 @@ const Registration = () => {
         });
 
         if (signUpError) {
-          // Si el usuario ya existe, intentar iniciar sesión no funciona sin contraseña
-          // Mejor pedir que inicie sesión
           if (signUpError.message.includes("already registered")) {
             toast.error("Este email ya está registrado. Por favor, inicia sesión primero.");
             navigate("/auth");
@@ -106,10 +104,31 @@ const Registration = () => {
           return;
         }
 
-        currentUser = signUpData.user;
+        // Intentar iniciar sesión automáticamente con las credenciales recién creadas
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: tempPassword,
+        });
+
+        if (signInError) {
+          toast.error("Cuenta creada pero necesitas confirmar tu email. Revisa tu correo y luego inicia sesión.", {
+            duration: 8000,
+          });
+          toast.info(`Tu contraseña es: ${tempPassword}`, {
+            duration: 10000,
+          });
+          return;
+        }
+
+        if (!signInData.user) {
+          toast.error("Error al autenticar");
+          return;
+        }
+
+        currentUser = signInData.user;
+        setUser(currentUser);
         
-        // Mostrar la contraseña temporal al usuario
-        toast.success(`Cuenta creada. Tu contraseña temporal es: ${tempPassword}`, {
+        toast.success(`Cuenta creada exitosamente. Contraseña: ${tempPassword}`, {
           duration: 10000,
         });
       }
@@ -131,9 +150,8 @@ const Registration = () => {
         throw insertError;
       }
 
-      toast.success("¡Equipo registrado exitosamente! Accede a tu dashboard para gestionar jugadores.");
+      toast.success("¡Equipo registrado exitosamente! Redirigiendo al dashboard...");
       
-      // Esperar un poco para que el usuario vea el mensaje
       setTimeout(() => {
         navigate("/dashboard");
       }, 2000);
