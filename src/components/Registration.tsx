@@ -59,22 +59,64 @@ const Registration = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      toast.error("Debes iniciar sesión para registrar un equipo");
-      navigate("/auth");
+    if (!formData.leagueId) {
+      toast.error("Debes seleccionar una liga");
       return;
     }
 
-    if (!formData.leagueId) {
-      toast.error("Debes seleccionar una liga");
+    if (!formData.players || parseInt(formData.players) < 3 || parseInt(formData.players) > 6) {
+      toast.error("El número de jugadores debe estar entre 3 y 6");
       return;
     }
 
     setLoading(true);
 
     try {
-      const { error } = await supabase.from("team_registrations").insert({
-        user_id: user.id,
+      let currentUser = user;
+
+      // Si no hay usuario autenticado, crear cuenta automáticamente
+      if (!currentUser) {
+        // Generar contraseña temporal
+        const tempPassword = Math.random().toString(36).slice(-8) + "A1!";
+        
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: tempPassword,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: formData.captainName,
+            },
+          },
+        });
+
+        if (signUpError) {
+          // Si el usuario ya existe, intentar iniciar sesión no funciona sin contraseña
+          // Mejor pedir que inicie sesión
+          if (signUpError.message.includes("already registered")) {
+            toast.error("Este email ya está registrado. Por favor, inicia sesión primero.");
+            navigate("/auth");
+            return;
+          }
+          throw signUpError;
+        }
+
+        if (!signUpData.user) {
+          toast.error("Error al crear la cuenta");
+          return;
+        }
+
+        currentUser = signUpData.user;
+        
+        // Mostrar la contraseña temporal al usuario
+        toast.success(`Cuenta creada. Tu contraseña temporal es: ${tempPassword}`, {
+          duration: 10000,
+        });
+      }
+
+      // Insertar el registro del equipo
+      const { error: insertError } = await supabase.from("team_registrations").insert({
+        user_id: currentUser.id,
         team_name: formData.teamName,
         captain_name: formData.captainName,
         email: formData.email,
@@ -84,13 +126,21 @@ const Registration = () => {
         message: formData.message,
       });
 
-      if (error) throw error;
+      if (insertError) {
+        console.error("Error al insertar registro:", insertError);
+        throw insertError;
+      }
 
-      toast.success("¡Registro exitoso! Revisa tu dashboard para completar la información.");
-      navigate("/dashboard");
+      toast.success("¡Equipo registrado exitosamente! Accede a tu dashboard para gestionar jugadores.");
+      
+      // Esperar un poco para que el usuario vea el mensaje
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+      
     } catch (error: any) {
-      console.error("Error:", error);
-      toast.error(error.message);
+      console.error("Error en el registro:", error);
+      toast.error(`Error: ${error.message || "No se pudo completar el registro"}`);
     } finally {
       setLoading(false);
     }
