@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Users, Mail, Phone, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-
+import { z } from "zod";
 interface League {
   id: string;
   name: string;
@@ -24,6 +24,8 @@ const Registration = () => {
     teamName: "",
     captainName: "",
     email: "",
+    password: "",
+    confirmPassword: "",
     phone: "",
     players: "",
     leagueId: "",
@@ -58,14 +60,27 @@ const Registration = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    const targetEmail = formData.email.trim().toLowerCase();
+    const playersNum = parseInt(formData.players);
+
+    if (!z.string().email().safeParse(targetEmail).success) {
+      toast.error("Email inválido");
+      return;
+    }
+
     if (!formData.leagueId) {
       toast.error("Debes seleccionar una liga");
       return;
     }
 
-    if (!formData.players || parseInt(formData.players) < 3 || parseInt(formData.players) > 6) {
+    if (!playersNum || playersNum < 3 || playersNum > 6) {
       toast.error("El número de jugadores debe estar entre 3 y 6");
+      return;
+    }
+
+    if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
+      toast.error("Las contraseñas no coinciden");
       return;
     }
 
@@ -73,75 +88,62 @@ const Registration = () => {
 
     try {
       let currentUser = user;
+      const needsNewAccount = !currentUser || (currentUser.email?.toLowerCase() !== targetEmail);
 
-      // Si no hay usuario autenticado, crear cuenta automáticamente
-      if (!currentUser) {
-        // Generar contraseña temporal
-        const tempPassword = Math.random().toString(36).slice(-8) + "A1!";
-        
+      if (needsNewAccount) {
+        if (currentUser && currentUser.email?.toLowerCase() !== targetEmail) {
+          await supabase.auth.signOut();
+          setUser(null);
+        }
+
+        let passwordToUse = formData.password?.trim();
+        let generatedTemp = false;
+
+        if (!passwordToUse) {
+          passwordToUse = Math.random().toString(36).slice(-10) + "aA1!";
+          generatedTemp = true;
+        }
+
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: formData.email,
-          password: tempPassword,
+          email: targetEmail,
+          password: passwordToUse,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              full_name: formData.captainName,
-            },
+            data: { full_name: formData.captainName },
           },
         });
 
-        if (signUpError) {
-          if (signUpError.message.includes("already registered")) {
-            toast.error("Este email ya está registrado. Por favor, inicia sesión primero.");
-            navigate("/auth");
-            return;
-          }
+        if (signUpError && !signUpError.message.toLowerCase().includes("registered")) {
           throw signUpError;
         }
 
-        if (!signUpData.user) {
-          toast.error("Error al crear la cuenta");
-          return;
-        }
-
-        // Intentar iniciar sesión automáticamente con las credenciales recién creadas
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: tempPassword,
+          email: targetEmail,
+          password: passwordToUse,
         });
 
-        if (signInError) {
-          toast.error("Cuenta creada pero necesitas confirmar tu email. Revisa tu correo y luego inicia sesión.", {
-            duration: 8000,
-          });
-          toast.info(`Tu contraseña es: ${tempPassword}`, {
-            duration: 10000,
-          });
-          return;
-        }
-
-        if (!signInData.user) {
-          toast.error("Error al autenticar");
+        if (signInError || !signInData.user) {
+          toast.error("No se pudo iniciar sesión. Si ya tienes cuenta, entra desde 'Acceder'.");
+          navigate("/auth");
           return;
         }
 
         currentUser = signInData.user;
         setUser(currentUser);
-        
-        toast.success(`Cuenta creada exitosamente. Contraseña: ${tempPassword}`, {
-          duration: 10000,
-        });
+
+        if (generatedTemp) {
+          toast.info(`Contraseña temporal: ${passwordToUse}`, { duration: 12000 });
+        }
       }
 
-      // Insertar el registro del equipo
       const { error: insertError } = await supabase.from("team_registrations").insert({
         user_id: currentUser.id,
         team_name: formData.teamName,
         captain_name: formData.captainName,
-        email: formData.email,
+        email: targetEmail,
         phone: formData.phone,
         league_id: formData.leagueId,
-        number_of_players: parseInt(formData.players),
+        number_of_players: playersNum,
         message: formData.message,
       });
 
@@ -150,15 +152,12 @@ const Registration = () => {
         throw insertError;
       }
 
-      toast.success("¡Equipo registrado exitosamente! Redirigiendo al dashboard...");
-      
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000);
-      
+      toast.success("¡Equipo registrado! Te llevamos a tu dashboard...");
+      setTimeout(() => navigate("/dashboard"), 1200);
+
     } catch (error: any) {
       console.error("Error en el registro:", error);
-      toast.error(`Error: ${error.message || "No se pudo completar el registro"}`);
+      toast.error(error.message || "No se pudo completar el registro");
     } finally {
       setLoading(false);
     }
@@ -225,6 +224,33 @@ const Registration = () => {
                     required
                     className="mt-2 bg-muted border-border text-foreground"
                     placeholder="tu@email.com"
+                  />
+                </div>
+
+                {/* Credenciales para nueva cuenta (si aplica) */}
+                <div>
+                  <Label htmlFor="password" className="text-foreground">Contraseña</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="mt-2 bg-muted border-border text-foreground"
+                    placeholder="Crea una contraseña segura"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="confirmPassword" className="text-foreground">Confirmar contraseña</Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    className="mt-2 bg-muted border-border text-foreground"
+                    placeholder="Repite la contraseña"
                   />
                 </div>
 
