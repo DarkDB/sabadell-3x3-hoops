@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { CheckCircle } from "lucide-react";
 
 interface Registration {
   id: string;
@@ -29,6 +30,7 @@ interface Registration {
   number_of_players: number;
   payment_status: string;
   created_at: string;
+  league_id: string;
   leagues: {
     name: string;
     season: string | null;
@@ -102,6 +104,55 @@ const AdminRegistrations = () => {
     }
   };
 
+  const approveAndCreateTeam = async (reg: Registration) => {
+    if (reg.payment_status !== "paid") {
+      toast({
+        title: "Error",
+        description: "El pago debe estar confirmado antes de crear el equipo",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (reg.players.length !== reg.number_of_players) {
+      toast({
+        title: "Error",
+        description: `El equipo debe tener ${reg.number_of_players} jugadores registrados`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Crear equipo oficial
+      const { data: newTeam, error: teamError } = await supabase
+        .from("teams")
+        .insert({
+          name: reg.team_name,
+          league_id: reg.league_id,
+          wins: 0,
+          losses: 0,
+        })
+        .select()
+        .single();
+
+      if (teamError) throw teamError;
+
+      toast({
+        title: "¡Equipo creado!",
+        description: `${reg.team_name} ahora es un equipo oficial en la liga`,
+      });
+
+      fetchRegistrations();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive"> = {
       pending: "secondary",
@@ -148,7 +199,8 @@ const AdminRegistrations = () => {
                   <TableHead>Jugadores</TableHead>
                   <TableHead>Estado Pago</TableHead>
                   <TableHead>Fecha</TableHead>
-                  <TableHead>Acciones</TableHead>
+                  <TableHead>Estado Pago</TableHead>
+                  <TableHead>Aprobar</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -194,6 +246,20 @@ const AdminRegistrations = () => {
                           <SelectItem value="rejected">Rechazado</SelectItem>
                         </SelectContent>
                       </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        onClick={() => approveAndCreateTeam(reg)}
+                        disabled={
+                          reg.payment_status !== "paid" ||
+                          reg.players.length !== reg.number_of_players
+                        }
+                        className="bg-gradient-primary"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Crear Equipo
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
