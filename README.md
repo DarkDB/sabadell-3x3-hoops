@@ -1,4 +1,89 @@
-# Welcome to your Lovable project
+# 3lab3 - Liga de Baloncesto
+
+Sistema completo de gestión de ligas de baloncesto con registro de equipos, gestión de partidos y seguimiento de estadísticas.
+
+## 🏀 Características Principales
+
+### Para Usuarios
+- **Registro de Equipos**: Los capitanes pueden registrar sus equipos con información completa
+- **Gestión de Jugadores**: Agregar jugadores con nombres, números y posiciones
+- **Dashboard Personal**: Ver información del equipo, estado de pago y estadísticas
+- **Seguimiento de Aprobación**: Ver si el equipo ha sido aprobado como oficial
+
+### Para Administradores
+- **Gestión de Ligas**: Crear y administrar múltiples ligas y temporadas
+- **Aprobación de Equipos**: Revisar inscripciones y crear equipos oficiales
+- **Gestión de Partidos**: Crear partidos, actualizar resultados
+- **Actualización Automática**: Las victorias/derrotas se actualizan automáticamente
+
+## 📋 Flujo Completo del Sistema
+
+1. **Registro de Equipo** (Usuario)
+   - Completar formulario de inscripción
+   - Proporcionar email y contraseña
+   - Pago pendiente de confirmación
+
+2. **Gestión de Jugadores** (Usuario)
+   - Iniciar sesión con credenciales
+   - Acceder al dashboard
+   - Agregar jugadores (hasta el número registrado)
+
+3. **Aprobación** (Admin)
+   - Revisar inscripciones en panel de admin
+   - Marcar pago como "Pagado"
+   - Hacer clic en "Crear Equipo" cuando esté completo
+   - El equipo pasa a ser oficial en la liga
+
+4. **Gestión de Partidos** (Admin)
+   - Crear partidos entre equipos oficiales
+   - Actualizar resultados al finalizar
+   - Las estadísticas se actualizan automáticamente
+
+## 🔐 Acceso al Sistema
+
+### Usuario Normal
+- Registrarse desde el formulario de inscripción
+- Email y contraseña proporcionados durante el registro
+- Acceso al dashboard personal
+
+### Administrador
+- Acceso configurado en la base de datos (tabla `user_roles`)
+- Panel de administración completo
+- Gestión de ligas, equipos, partidos e inscripciones
+
+## 🗄️ Estructura de la Base de Datos
+
+- `leagues`: Ligas y temporadas
+- `teams`: Equipos oficiales aprobados
+- `team_registrations`: Inscripciones pendientes
+- `players`: Jugadores de cada equipo
+- `matches`: Partidos programados y completados
+- `user_roles`: Roles de administrador
+- `profiles`: Perfiles de usuario
+
+## 🎯 Próximos Pasos Sugeridos
+
+1. ✅ **Sistema completado** - Todas las funciones principales están operativas
+2. 🎨 **Personalización visual** - Ajustar colores y estilos según preferencias
+3. 📧 **Notificaciones** - Agregar emails automáticos (opcional)
+4. 📊 **Reportes** - Crear reportes de liga y estadísticas (opcional)
+5. 🌐 **Dominio personalizado** - Conectar dominio propio
+6. 🚀 **Publicar** - Hacer deploy de la versión final
+
+## 🛠️ Tecnologías Utilizadas
+
+- React + TypeScript
+- Vite
+- Tailwind CSS
+- Supabase (Backend)
+- Shadcn/UI Components
+
+## 📝 Notas Importantes
+
+- Las contraseñas se generan durante el registro del equipo
+- El trigger `update_team_records` actualiza wins/losses automáticamente
+- RLS policies protegen los datos según el rol del usuario
+- Todos los equipos deben tener el número completo de jugadores antes de aprobación
 
 ## Project info
 

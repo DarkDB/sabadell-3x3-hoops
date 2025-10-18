@@ -23,6 +23,13 @@ interface TeamRegistration {
   };
 }
 
+interface OfficialTeam {
+  id: string;
+  name: string;
+  wins: number;
+  losses: number;
+}
+
 interface Player {
   id: string;
   name: string;
@@ -36,6 +43,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [registration, setRegistration] = useState<TeamRegistration | null>(null);
+  const [officialTeam, setOfficialTeam] = useState<OfficialTeam | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [newPlayer, setNewPlayer] = useState({
     name: "",
@@ -79,6 +87,20 @@ const Dashboard = () => {
     if (data) {
       setRegistration(data as TeamRegistration);
       await fetchPlayers(data.id);
+      await checkOfficialTeam(data.team_name, data.league_id);
+    }
+  };
+
+  const checkOfficialTeam = async (teamName: string, leagueId: string) => {
+    const { data } = await supabase
+      .from("teams")
+      .select("*")
+      .eq("name", teamName)
+      .eq("league_id", leagueId)
+      .maybeSingle();
+
+    if (data) {
+      setOfficialTeam(data);
     }
   };
 
@@ -205,6 +227,23 @@ const Dashboard = () => {
             <CardTitle>Información del Equipo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {officialTeam && (
+              <div className="bg-gradient-primary/10 border border-primary/20 rounded-lg p-4 mb-4">
+                <p className="text-sm font-semibold text-primary flex items-center gap-2">
+                  ✓ Equipo Oficial Aprobado
+                </p>
+                <div className="grid md:grid-cols-2 gap-4 mt-3">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Victorias</p>
+                    <p className="text-2xl font-black text-primary">{officialTeam.wins}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Derrotas</p>
+                    <p className="text-2xl font-black text-card-foreground">{officialTeam.losses}</p>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Equipo</p>

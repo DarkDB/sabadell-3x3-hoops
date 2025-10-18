@@ -27,6 +27,9 @@ interface Match {
   status: string;
   home_score: number | null;
   away_score: number | null;
+  home_team?: { name: string };
+  away_team?: { name: string };
+  leagues?: { name: string };
 }
 
 interface Team {
@@ -97,11 +100,17 @@ const AdminMatches = () => {
   const fetchMatches = async () => {
     const { data, error } = await supabase
       .from("matches")
-      .select("*")
+      .select(`
+        *,
+        home_team:teams!matches_home_team_id_fkey(name),
+        away_team:teams!matches_away_team_id_fkey(name),
+        leagues(name)
+      `)
       .order("match_date", { ascending: false });
 
     if (error) {
       toast.error("Error al cargar partidos");
+      console.error(error);
     } else {
       setMatches(data || []);
     }
@@ -184,9 +193,10 @@ const AdminMatches = () => {
     setTeams([]);
   };
 
-  const getTeamName = (teamId: string) => {
-    const team = teams.find((t) => t.id === teamId);
-    return team?.name || "Equipo desconocido";
+  const getTeamName = (match: Match, isHome: boolean) => {
+    if (isHome && match.home_team) return match.home_team.name;
+    if (!isHome && match.away_team) return match.away_team.name;
+    return "Equipo desconocido";
   };
 
   const getStatusBadge = (status: string) => {
@@ -391,10 +401,10 @@ const AdminMatches = () => {
                   {matches.map((match) => (
                     <TableRow key={match.id}>
                       <TableCell className="font-medium">
-                        {getTeamName(match.home_team_id)} vs {getTeamName(match.away_team_id)}
+                        {getTeamName(match, true)} vs {getTeamName(match, false)}
                       </TableCell>
                       <TableCell>
-                        {leagues.find((l) => l.id === match.league_id)?.name || "Sin liga"}
+                        {match.leagues?.name || "Sin liga"}
                       </TableCell>
                       <TableCell>
                         {new Date(match.match_date).toLocaleString("es-ES")}
