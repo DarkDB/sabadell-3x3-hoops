@@ -8,19 +8,39 @@ import { useNavigate } from "react-router-dom";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        checkAdminRole(session.user.id);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        setTimeout(() => checkAdminRole(session.user.id), 0);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const checkAdminRole = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    
+    setIsAdmin(!!data);
+  };
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -69,12 +89,12 @@ const Navbar = () => {
             </Button>
             {user ? (
               <Button
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate(isAdmin ? "/admin" : "/dashboard")}
                 variant="outline"
                 className="ml-2 border-border"
               >
                 <User className="w-4 h-4 mr-2" />
-                Mi perfil
+                {isAdmin ? "Admin" : "Mi perfil"}
               </Button>
             ) : (
               <Button
@@ -118,12 +138,12 @@ const Navbar = () => {
               </Button>
               {user ? (
                 <Button
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigate(isAdmin ? "/admin" : "/dashboard")}
                   variant="outline"
                   className="w-full border-border"
                 >
                   <User className="w-4 h-4 mr-2" />
-                  Mi perfil
+                  {isAdmin ? "Admin" : "Mi perfil"}
                 </Button>
               ) : (
                 <Button
