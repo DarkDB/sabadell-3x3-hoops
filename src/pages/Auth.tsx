@@ -66,7 +66,7 @@ const Auth = () => {
         }
       } else {
         const redirectUrl = `${window.location.origin}/`;
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -84,6 +84,14 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else {
+          // Enviar email de bienvenida
+          try {
+            await supabase.functions.invoke('send-welcome-email', {
+              body: { to: email, fullName: fullName },
+            });
+          } catch (emailError) {
+            console.error("Error sending welcome email:", emailError);
+          }
           toast.success("Registro exitoso. Revisa tu email para confirmar.");
         }
       }

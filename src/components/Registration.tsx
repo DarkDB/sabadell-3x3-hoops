@@ -152,6 +152,28 @@ const Registration = () => {
         throw insertError;
       }
 
+      // Enviar email de confirmación de registro
+      try {
+        const { data: leagueData } = await supabase
+          .from("leagues")
+          .select("name")
+          .eq("id", formData.leagueId)
+          .single();
+
+        await supabase.functions.invoke('send-registration-confirmation', {
+          body: {
+            to: targetEmail,
+            captainName: formData.captainName,
+            teamName: formData.teamName,
+            leagueName: leagueData?.name || "Liga",
+            numberOfPlayers: playersNum,
+            totalAmount: 80,
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending registration email:", emailError);
+      }
+
       toast.success("¡Equipo registrado! Te llevamos a tu dashboard...");
       setTimeout(() => navigate("/dashboard"), 1200);
 

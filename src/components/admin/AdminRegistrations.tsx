@@ -138,6 +138,20 @@ const AdminRegistrations = () => {
 
       if (teamError) throw teamError;
 
+      // Enviar email de aprobación
+      try {
+        await supabase.functions.invoke('send-approval-email', {
+          body: {
+            to: reg.email,
+            captainName: reg.captain_name,
+            teamName: reg.team_name,
+            leagueName: reg.leagues?.name || "Liga",
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending approval email:", emailError);
+      }
+
       toast({
         title: "¡Equipo creado!",
         description: `${reg.team_name} ahora es un equipo oficial en la liga`,
