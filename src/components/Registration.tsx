@@ -104,7 +104,7 @@ const Registration = () => {
           generatedTemp = true;
         }
 
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        const { error: signUpError } = await supabase.auth.signUp({
           email: targetEmail,
           password: passwordToUse,
           options: {
@@ -113,16 +113,24 @@ const Registration = () => {
           },
         });
 
-        if (signUpError && !signUpError.message.toLowerCase().includes("registered")) {
-          throw signUpError;
+        if (signUpError) {
+          const alreadyRegistered = signUpError.message.toLowerCase().includes("registered");
+          if (alreadyRegistered && generatedTemp) {
+            toast.error("Este email ya tiene una cuenta. Introduce tu contraseña o accede desde 'Acceder' para continuar.");
+            navigate("/auth");
+            return;
+          }
+          if (!alreadyRegistered) {
+            throw signUpError;
+          }
         }
 
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: targetEmail,
-          password: passwordToUse,
+          password: passwordToUse!,
         });
 
-        if (signInError || !signInData.user) {
+        if (signInError || !signInData?.user) {
           toast.error("No se pudo iniciar sesión. Si ya tienes cuenta, entra desde 'Acceder'.");
           navigate("/auth");
           return;
@@ -131,7 +139,7 @@ const Registration = () => {
         currentUser = signInData.user;
         setUser(currentUser);
 
-        if (generatedTemp) {
+        if (generatedTemp && !signUpError) {
           toast.info(`Contraseña temporal: ${passwordToUse}`, { duration: 12000 });
         }
       }
