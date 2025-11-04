@@ -121,13 +121,6 @@ npm i
 npm run dev
 ```
 
-Before iniciar el servidor, copia el archivo de variables de entorno y completa tus credenciales de Supabase:
-
-```sh
-cp .env.example .env
-# Edita .env para definir VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY
-```
-
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).
