@@ -8,6 +8,9 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Dashboard from "./pages/Dashboard";
+import DashboardTeam from "./pages/DashboardTeam";
+import DashboardMatches from "./pages/DashboardMatches";
+import DashboardProfile from "./pages/DashboardProfile";
 import { DashboardLayout } from "./pages/DashboardLayout";
 
 const queryClient = new QueryClient();
@@ -24,6 +27,9 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
+            <Route path="team" element={<DashboardTeam />} />
+            <Route path="matches" element={<DashboardMatches />} />
+            <Route path="profile" element={<DashboardProfile />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
