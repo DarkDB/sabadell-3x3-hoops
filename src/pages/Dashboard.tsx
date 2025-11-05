@@ -93,7 +93,6 @@ const Dashboard = () => {
       await Promise.all([
         fetchPlayers(data.id),
         checkOfficialTeam(data.team_name, data.league_id),
-        fetchMatches(data.team_name, data.league_id),
       ]);
     }
   };
@@ -108,6 +107,7 @@ const Dashboard = () => {
 
     if (data) {
       setOfficialTeam(data);
+      await fetchMatches(data.id, leagueId);
     }
   };
 
@@ -126,7 +126,7 @@ const Dashboard = () => {
     setPlayers(data || []);
   };
 
-  const fetchMatches = async (teamName: string, leagueId: string) => {
+  const fetchMatches = async (teamId: string, leagueId: string) => {
     const { data, error } = await supabase
       .from("matches")
       .select(`
@@ -135,7 +135,7 @@ const Dashboard = () => {
         away_team:teams!matches_away_team_id_fkey(name)
       `)
       .eq("league_id", leagueId)
-      .or(`home_team.name.eq.${teamName},away_team.name.eq.${teamName}`)
+      .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
       .order("match_date", { ascending: true })
       .limit(5);
 
