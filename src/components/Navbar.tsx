@@ -60,7 +60,7 @@ const Navbar = () => {
     { label: "Ligas", id: "leagues" },
     { label: "Equipos", id: "teams" },
     { label: "Clasificación", id: "standings", route: "/standings" },
-    { label: "Partidos", id: "matches" },
+    { label: "Calendario", id: "calendar", route: "/calendar" },
     { label: "Comunidad", id: "community" },
     { label: "Inscripción", id: "registration" },
     { label: "Sobre nosotros", id: "about" },

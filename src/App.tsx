@@ -12,6 +12,7 @@ import DashboardTeam from "./pages/DashboardTeam";
 import DashboardMatches from "./pages/DashboardMatches";
 import DashboardProfile from "./pages/DashboardProfile";
 import Standings from "./pages/Standings";
+import MatchCalendar from "./pages/MatchCalendar";
 import { DashboardLayout } from "./pages/DashboardLayout";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/standings" element={<Standings />} />
+          <Route path="/calendar" element={<MatchCalendar />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="team" element={<DashboardTeam />} />
