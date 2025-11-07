@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, UserPlus } from "lucide-react";
+import PlayerStats from "@/components/dashboard/PlayerStats";
 import {
   Table,
   TableBody,
@@ -248,6 +249,11 @@ const DashboardTeam = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Player Statistics */}
+      {players.length > 0 && (
+        <PlayerStats players={players} />
+      )}
 
       <Card>
         <CardHeader>

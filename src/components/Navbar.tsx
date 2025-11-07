@@ -42,7 +42,12 @@ const Navbar = () => {
     setIsAdmin(!!data);
   };
 
-  const scrollToSection = (id: string) => {
+  const scrollToSection = (id: string, route?: string) => {
+    if (route) {
+      navigate(route);
+      setIsOpen(false);
+      return;
+    }
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
@@ -54,6 +59,7 @@ const Navbar = () => {
     { label: "Inicio", id: "hero" },
     { label: "Ligas", id: "leagues" },
     { label: "Equipos", id: "teams" },
+    { label: "Clasificación", id: "standings", route: "/standings" },
     { label: "Partidos", id: "matches" },
     { label: "Comunidad", id: "community" },
     { label: "Inscripción", id: "registration" },
@@ -75,7 +81,7 @@ const Navbar = () => {
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => scrollToSection(item.id)}
+                onClick={() => scrollToSection(item.id, item.route)}
                 className="px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
               >
                 {item.label}
@@ -123,7 +129,7 @@ const Navbar = () => {
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => scrollToSection(item.id)}
+                onClick={() => scrollToSection(item.id, item.route)}
                 className="block w-full text-left px-4 py-3 text-sm font-medium text-foreground hover:text-primary hover:bg-muted/20 transition-colors"
               >
                 {item.label}
