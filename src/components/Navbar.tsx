@@ -43,15 +43,30 @@ const Navbar = () => {
   };
 
   const scrollToSection = (id: string, route?: string) => {
+    setIsOpen(false);
+    
     if (route) {
       navigate(route);
-      setIsOpen(false);
       return;
     }
+    
+    // If we're not on the home page, navigate to home first
+    if (window.location.pathname !== '/') {
+      navigate('/');
+      // Wait for navigation to complete before scrolling
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+      return;
+    }
+    
+    // If we're on the home page, just scroll
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
-      setIsOpen(false);
     }
   };
 
