@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -108,6 +109,7 @@ const Navbar = () => {
             >
               Inscríbete
             </Button>
+            {user && <NotificationBell />}
             {user ? (
               <Button
                 onClick={() => navigate(isAdmin ? "/admin" : "/dashboard")}
@@ -157,6 +159,11 @@ const Navbar = () => {
               >
                 Inscríbete
               </Button>
+              {user && (
+                <div className="flex justify-center pb-2">
+                  <NotificationBell />
+                </div>
+              )}
               {user ? (
                 <Button
                   onClick={() => navigate(isAdmin ? "/admin" : "/dashboard")}
