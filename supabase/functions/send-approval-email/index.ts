@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,37 +24,50 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending approval email to:", to);
 
-    const emailResponse = await resend.emails.send({
-      from: "3lab3 <onboarding@resend.dev>",
-      to: [to],
-      subject: `¡Equipo ${teamName} Aprobado!`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #FF6B00; text-align: center;">🎉 ¡Felicidades! Tu Equipo ha sido Aprobado</h1>
-          <p>Hola <strong>${captainName}</strong>,</p>
-          <p>¡Tenemos excelentes noticias! Tu equipo <strong>${teamName}</strong> ha sido oficialmente aprobado para participar en la liga <strong>${leagueName}</strong>.</p>
-          
-          <div style="background-color: #f0f9ff; padding: 20px; border-left: 4px solid #FF6B00; margin: 20px 0;">
-            <p style="margin: 0;"><strong>Ya eres un equipo oficial de 3lab3</strong></p>
-            <p style="margin: 10px 0 0 0; color: #666;">Puedes empezar a consultar tus partidos y estadísticas en el panel.</p>
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "3lab3 <onboarding@resend.dev>",
+        to: [to],
+        subject: `¡Equipo ${teamName} Aprobado!`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #FF6B00; text-align: center;">🎉 ¡Felicidades! Tu Equipo ha sido Aprobado</h1>
+            <p>Hola <strong>${captainName}</strong>,</p>
+            <p>¡Tenemos excelentes noticias! Tu equipo <strong>${teamName}</strong> ha sido oficialmente aprobado para participar en la liga <strong>${leagueName}</strong>.</p>
+            
+            <div style="background-color: #f0f9ff; padding: 20px; border-left: 4px solid #FF6B00; margin: 20px 0;">
+              <p style="margin: 0;"><strong>Ya eres un equipo oficial de 3lab3</strong></p>
+              <p style="margin: 10px 0 0 0; color: #666;">Puedes empezar a consultar tus partidos y estadísticas en el panel.</p>
+            </div>
+            
+            <h3 style="color: #FF6B00;">¿Qué puedes hacer ahora?</h3>
+            <ul>
+              <li>Ver el calendario de partidos</li>
+              <li>Consultar las estadísticas de tu equipo</li>
+              <li>Seguir la clasificación de la liga</li>
+            </ul>
+            
+            <p style="margin-top: 30px;">¡Mucha suerte en la temporada!</p>
+            <p style="color: #666;">El equipo de 3lab3</p>
           </div>
-          
-          <h3 style="color: #FF6B00;">¿Qué puedes hacer ahora?</h3>
-          <ul>
-            <li>Ver el calendario de partidos</li>
-            <li>Consultar las estadísticas de tu equipo</li>
-            <li>Seguir la clasificación de la liga</li>
-          </ul>
-          
-          <p style="margin-top: 30px;">¡Mucha suerte en la temporada!</p>
-          <p style="color: #666;">El equipo de 3lab3</p>
-        </div>
-      `,
+        `,
+      }),
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    const data = await res.json();
 
-    return new Response(JSON.stringify(emailResponse), {
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to send email");
+    }
+
+    console.log("Email sent successfully:", data);
+
+    return new Response(JSON.stringify(data), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
