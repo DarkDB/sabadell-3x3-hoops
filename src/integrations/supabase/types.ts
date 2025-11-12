@@ -140,7 +140,9 @@ export type Database = {
       }
       players: {
         Row: {
+          age: number | null
           created_at: string
+          email: string | null
           id: string
           jersey_number: number | null
           name: string
@@ -148,7 +150,9 @@ export type Database = {
           team_registration_id: string
         }
         Insert: {
+          age?: number | null
           created_at?: string
+          email?: string | null
           id?: string
           jersey_number?: number | null
           name: string
@@ -156,7 +160,9 @@ export type Database = {
           team_registration_id: string
         }
         Update: {
+          age?: number | null
           created_at?: string
+          email?: string | null
           id?: string
           jersey_number?: number | null
           name?: string

@@ -31,6 +31,8 @@ interface Player {
   name: string;
   jersey_number: number | null;
   position: string | null;
+  age: number | null;
+  email: string | null;
 }
 
 interface TeamRegistration {
@@ -50,6 +52,8 @@ const DashboardTeam = () => {
     name: "",
     jersey_number: "",
     position: "",
+    age: "",
+    email: "",
   });
 
   useEffect(() => {
@@ -115,6 +119,8 @@ const DashboardTeam = () => {
       name: newPlayer.name.trim(),
       jersey_number: newPlayer.jersey_number ? parseInt(newPlayer.jersey_number) : null,
       position: newPlayer.position.trim() || null,
+      age: newPlayer.age ? parseInt(newPlayer.age) : null,
+      email: newPlayer.email.trim() || null,
     });
 
     if (error) {
@@ -132,7 +138,7 @@ const DashboardTeam = () => {
     });
 
     setIsAddDialogOpen(false);
-    setNewPlayer({ name: "", jersey_number: "", position: "" });
+    setNewPlayer({ name: "", jersey_number: "", position: "", age: "", email: "" });
     await fetchPlayers(registration.id);
   };
 
@@ -217,6 +223,32 @@ const DashboardTeam = () => {
                 />
               </div>
               <div>
+                <Label htmlFor="email">Correo Electrónico</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newPlayer.email}
+                  onChange={(e) =>
+                    setNewPlayer({ ...newPlayer, email: e.target.value })
+                  }
+                  placeholder="jugador@ejemplo.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="age">Edad</Label>
+                <Input
+                  id="age"
+                  type="number"
+                  value={newPlayer.age}
+                  onChange={(e) =>
+                    setNewPlayer({ ...newPlayer, age: e.target.value })
+                  }
+                  placeholder="25"
+                  min="10"
+                  max="100"
+                />
+              </div>
+              <div>
                 <Label htmlFor="jersey">Número de Camiseta</Label>
                 <Input
                   id="jersey"
@@ -270,6 +302,8 @@ const DashboardTeam = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nombre</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead className="text-center">Edad</TableHead>
                   <TableHead className="text-center">Número</TableHead>
                   <TableHead>Posición</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
@@ -279,6 +313,10 @@ const DashboardTeam = () => {
                 {players.map((player) => (
                   <TableRow key={player.id}>
                     <TableCell className="font-medium">{player.name}</TableCell>
+                    <TableCell>{player.email || "-"}</TableCell>
+                    <TableCell className="text-center">
+                      {player.age || "-"}
+                    </TableCell>
                     <TableCell className="text-center">
                       {player.jersey_number || "-"}
                     </TableCell>
