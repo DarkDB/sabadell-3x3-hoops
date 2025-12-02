@@ -10,6 +10,8 @@ interface League {
   season: string | null;
   start_date: string | null;
   end_date: string | null;
+  age_category: string | null;
+  gender: string | null;
 }
 
 const Leagues = () => {
@@ -78,6 +80,14 @@ const Leagues = () => {
             leagues.map((league, index) => {
               const Icon = getIcon(index);
               const details = [];
+              
+              if (league.age_category) {
+                details.push(`${league.age_category}`);
+              }
+              
+              if (league.gender) {
+                details.push(`${league.gender}`);
+              }
               
               if (teamCounts[league.id]) {
                 details.push(`${teamCounts[league.id]} equipos`);
