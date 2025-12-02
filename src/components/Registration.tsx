@@ -13,6 +13,8 @@ interface League {
   id: string;
   name: string;
   season: string | null;
+  age_category: string | null;
+  gender: string | null;
 }
 
 const Registration = () => {
@@ -48,7 +50,7 @@ const Registration = () => {
   const fetchLeagues = async () => {
     const { data, error } = await supabase
       .from("leagues")
-      .select("id, name, season")
+      .select("id, name, season, age_category, gender")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -311,7 +313,7 @@ const Registration = () => {
                     <SelectContent>
                       {leagues.map((league) => (
                         <SelectItem key={league.id} value={league.id}>
-                          {league.name} {league.season ? `- ${league.season}` : ""}
+                          {league.name} {league.age_category ? `- ${league.age_category}` : ""} {league.gender ? `(${league.gender})` : ""} {league.season ? `- ${league.season}` : ""}
                         </SelectItem>
                       ))}
                     </SelectContent>

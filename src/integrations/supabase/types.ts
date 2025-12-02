@@ -16,27 +16,33 @@ export type Database = {
     Tables: {
       leagues: {
         Row: {
+          age_category: string | null
           created_at: string
           description: string | null
           end_date: string | null
+          gender: string | null
           id: string
           name: string
           season: string | null
           start_date: string | null
         }
         Insert: {
+          age_category?: string | null
           created_at?: string
           description?: string | null
           end_date?: string | null
+          gender?: string | null
           id?: string
           name: string
           season?: string | null
           start_date?: string | null
         }
         Update: {
+          age_category?: string | null
           created_at?: string
           description?: string | null
           end_date?: string | null
+          gender?: string | null
           id?: string
           name?: string
           season?: string | null

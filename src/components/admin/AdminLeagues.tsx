@@ -22,6 +22,8 @@ interface League {
   season: string;
   start_date: string;
   end_date: string;
+  age_category: string;
+  gender: string;
 }
 
 const AdminLeagues = () => {
@@ -33,6 +35,8 @@ const AdminLeagues = () => {
     season: "",
     start_date: "",
     end_date: "",
+    age_category: "",
+    gender: "",
   });
 
   useEffect(() => {
@@ -89,6 +93,8 @@ const AdminLeagues = () => {
       season: league.season,
       start_date: league.start_date,
       end_date: league.end_date,
+      age_category: league.age_category,
+      gender: league.gender,
     });
   };
 
@@ -113,6 +119,8 @@ const AdminLeagues = () => {
       season: "",
       start_date: "",
       end_date: "",
+      age_category: "",
+      gender: "",
     });
   };
 
@@ -143,6 +151,32 @@ const AdminLeagues = () => {
               required
               className="bg-input border-border"
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="age_category">Categoría de Edad</Label>
+              <Input
+                id="age_category"
+                value={formData.age_category}
+                onChange={(e) => setFormData({ ...formData, age_category: e.target.value })}
+                required
+                className="bg-input border-border"
+                placeholder="Ej: Sub-18, Sub-21, Senior"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="gender">Género</Label>
+              <Input
+                id="gender"
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                required
+                className="bg-input border-border"
+                placeholder="Ej: Masculino, Femenino, Mixto"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -211,7 +245,8 @@ const AdminLeagues = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nombre</TableHead>
-                    <TableHead>Descripción</TableHead>
+                    <TableHead>Categoría</TableHead>
+                    <TableHead>Género</TableHead>
                     <TableHead>Temporada</TableHead>
                     <TableHead>Fecha Inicio</TableHead>
                     <TableHead>Fecha Fin</TableHead>
@@ -222,7 +257,8 @@ const AdminLeagues = () => {
                   {leagues.map((league) => (
                     <TableRow key={league.id}>
                       <TableCell className="font-medium">{league.name}</TableCell>
-                      <TableCell>{league.description}</TableCell>
+                      <TableCell>{league.age_category}</TableCell>
+                      <TableCell>{league.gender}</TableCell>
                       <TableCell>{league.season}</TableCell>
                       <TableCell>{new Date(league.start_date).toLocaleDateString()}</TableCell>
                       <TableCell>{new Date(league.end_date).toLocaleDateString()}</TableCell>
